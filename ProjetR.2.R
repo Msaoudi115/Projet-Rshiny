@@ -134,10 +134,10 @@ ui <- dashboardPage(skin="red",
                                 fluidRow(
                                   box(title = "Nombre de stations à bonus", width = 4, plotOutput("bonus_vs_no_bonus_plot")),
                                   box(title = "Status de la station", width = 4, plotOutput("graphique2")),
-                                  box(title = "Scatter Plot", width = 4, plotOutput("scatter_plot")),
+                                  box(title = "Dispersion des emplacements de vélos disponibles par rapport aux emplacements de vélos totaux", width = 4, plotOutput("scatter_plot")),
                                 ),
                                 
-                                box(title = "Bike Stands and Available Bikes", width = 6, plotOutput("stacked_bar_chart"))
+                                
                                 
                         ),
                         
@@ -165,7 +165,7 @@ server <- function(input, output, session) {
     
     ggplot(data_filtered, aes(x = modified_name, y = available_bikes)) +
       geom_bar(stat = "identity") +
-      labs(x = "Name", y = "Available bike", title = "Nombre de vélo disponible par station")
+      labs(x = "Name", y = "Nombre de vélos disponibles", title = "Nombre de vélo disponible par station")
   })
   
   
@@ -183,7 +183,7 @@ server <- function(input, output, session) {
   output$bonus_vs_no_bonus_plot <- renderPlot({
     ggplot(data, aes(x = bonus, fill = bonus)) +
       geom_bar() +
-      labs(title = "Bonus vs. No Bonus Stations", x = "Bonus Availability", y = "Count") +
+      labs(title = "Bonus vs. Stations sans bonus", x = "Bonus activé", y = "Nombre de stations") +
       scale_fill_manual(values = c("yes" = "blue", "no" = "red")) +
       theme_minimal()
   })
@@ -194,32 +194,23 @@ server <- function(input, output, session) {
     
     ggplot(top_10_stations, aes(x = reorder(name...3, -available_bikes), y = available_bikes)) +
       geom_bar(stat = "identity") +
-      labs(title = "Top 10 Most Used Stations", x = "Station Name", y = "Available Bikes") +
+      labs(title = "Top 10 des stations les plus utilisées", x = "Nom de la station", y = "Nombre de vélos disponibles") +
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-      scale_x_discrete(name = "Station Name")
+      scale_x_discrete(name = "Nom de le station")
   })
   
   output$scatter_plot <- renderPlot({
     ggplot(data, aes(x = bike_stands, y = available_bike_stands)) +
       geom_point() +
-      labs(title = "Bike Stands vs. Available Bike Stands",
-           x = "Bike Stands",
-           y = "Available Bike Stands")
+      labs(title = "Vélos disponibles par rapport aux emplacements de vélos totaux",
+           x = "Emplacements de vélos totaux",
+           y = "Emplacements de vélos disponibles")
   })
   
   df <- data
   df$unavailable_bike_stands <- df$bike_stands - df$available_bike_stands
   
-  output$stacked_bar_chart <- renderPlot({
-    ggplot(df, aes(x = contract_name)) +
-      geom_bar(aes(y = bike_stands, fill = "Total Bike Stands"), stat = "identity") +
-      geom_bar(aes(y = unavailable_bike_stands, fill = "Unavailable Bike Stands"), stat = "identity") +
-      labs(title = "Bike Stands and Available Bikes by Contract",
-           x = "Contract Name",
-           y = "Count") +
-      scale_fill_manual(values = c("Total Bike Stands" = "blue", "Unavailable Bike Stands" = "red")) +
-      guides(fill = guide_legend(title = "Legend"))
-  })
+
   
   output$map <- renderLeaflet({
     filtered_data <- data
@@ -233,9 +224,9 @@ server <- function(input, output, session) {
         data = filtered_data,
         lat = ~`position.lat`,
         lng = ~`position.lng`,
-        popup = ~paste("Postcode: ", postcode, "<br>",
-                       "Available Bikes: ", available_bikes, "<br>",
-                       "Available Bike Stands: ", available_bike_stands)
+        popup = ~paste("Code Postal: ", postcode, "<br>",
+                       "Vélos diponibles: ", available_bikes, "<br>",
+                       "Emplacements de vélos diponibles: ", available_bike_stands)
       )
   })
   
