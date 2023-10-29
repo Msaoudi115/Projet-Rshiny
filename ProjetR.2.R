@@ -57,6 +57,7 @@ ui <- dashboardPage(skin="red",
                         menuItem("Table", tabName = "Table", icon = icon("th")),
                         actionButton("reload_button", "Reload Data"),
                         
+                        
                         selectInput("postcode_filter", "Select Postcode:",
                                     choices = c("", unique(data$postcode)), # Use unique_postcodes
                                     selected = "",
@@ -136,9 +137,11 @@ ui <- dashboardPage(skin="red",
                                   box(title = "Status de la station", width = 4, plotOutput("graphique2")),
                                   box(title = "Dispersion des emplacements de vélos disponibles par rapport aux emplacements de vélos totaux", width = 4, plotOutput("scatter_plot")),
                                 ),
-                                
-                                
-                                
+                                fluidRow(
+                                  box(
+                                  title = "Reload Status",
+                                  width = 5,
+                                  verbatimTextOutput("reload_status")) )                   
                         ),
                         
                         #Deuxième menus
@@ -230,6 +233,28 @@ server <- function(input, output, session) {
       )
   })
   
+  last_reload_time <- reactiveVal(NULL)
+  
+  # Reload button action
+  observeEvent(input$reload_button, {
+    # Perform data reload here
+    # Example: Reload your data
+    data <- read.csv("Excel.csv")
+    
+    # Update the last reload time
+    last_reload_time(Sys.time())
+  })
+  
+  # Display the reload status including the last update time
+  output$reload_status <- renderPrint({
+    reload_time <- last_reload_time()
+    if (!is.null(reload_time)) {
+      paste("Last Data Reload:", format(reload_time, format = "%Y-%m-%d %H:%M:%S"))
+    } else {
+      "Data has not been reloaded yet."
+    }
+  })
+
   # Observer to handle data reload
   observeEvent(input$reload_button, {
     # Reload data from the API using the API URL
